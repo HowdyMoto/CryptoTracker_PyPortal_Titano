@@ -31,12 +31,3 @@ secrets = {
 15. Save secrets.py to your Titano. 
 
 Enjoy!
-8. Replace the above placeholder with your Wifi network credentials.
-9. Get an API key here: https://coincap.io/api-key
-10. Replace the above placeholder with your API key.
-11. Save secrets.py to your Titano. 
-12. Get the required CircuitPython 7.x runtime libraries here: https://circuitpython.org/libraries
-13. Unzip the libraries on your local machine
-14. Create a directory on Titano called /lib
-14. When you run the program, it will let you know which libraries are missing. Copy over the needed libraries from the ZIP files /lib folder to the /lib directory on your Titano.
-15. Enjoy!
