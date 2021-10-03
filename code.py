@@ -1,18 +1,19 @@
 import time
 import board
 import busio
-from digitalio import DigitalInOut
-import adafruit_esp32spi.adafruit_esp32spi_socket as socket
-from adafruit_esp32spi import adafruit_esp32spi
-
 import displayio
 import terminalio
+from digitalio import DigitalInOut
+
 from adafruit_display_text import label
 from adafruit_display_shapes.triangle import Triangle
 from adafruit_display_shapes.rect import Rect
-import adafruit_requests as requests
-from adafruit_pyportal import PyPortal
 from adafruit_bitmap_font import bitmap_font
+
+import adafruit_requests as requests
+#from adafruit_pyportal import PyPortal
+import adafruit_esp32spi.adafruit_esp32spi_socket as socket
+from adafruit_esp32spi import adafruit_esp32spi
 
 ################### Global vars ##############################################################################
 WHITE = 0xFFFFFF
@@ -27,9 +28,8 @@ ETH_URL = "http://api.coincap.io/v2/assets/ethereum"
 XMR_URL = "http://api.coincap.io/v2/assets/monero"
 num_requests = 0
 num_loops = 0
-soundAlert = "/sounds/alert.wav"
 
-########### Set up i2C display ###############################################################################
+########### Set up display ###############################################################################
 display = board.DISPLAY
 
 ########## UI setup ##########################################################################################
@@ -58,12 +58,6 @@ btc_change_label = label.Label(font, text=str(""), scale=1, color=WHITE, x=inden
 eth_change_label = label.Label(font, text=str(""), scale=1, color=WHITE, x=indent_change, y=(indent_top + vert_spacing))
 xmr_change_label = label.Label(font, text=str(""), scale=1, color=WHITE, x=indent_change, y=(indent_top + vert_spacing*2) )
 
-#triangle_bmp_up = displayio.OnDiskBitmap('/triangle_up.bmp')
-
-#btc_trend_indicator_up = displayio.TileGrid(triangle_bmp_up, pixel_shader=getattr(triangle_bmp_up, 'pixel_shader', displayio.ColorConverter()), x=indent_indicator, y=indent_top)
-#eth_trend_indicator_up = displayio.TileGrid(triangle_bmp_up, pixel_shader=getattr(triangle_bmp_up, 'pixel_shader', displayio.ColorConverter()), x=indent_indicator, y=indent_top + vert_spacing)
-#xmr_trend_indicator_up = displayio.TileGrid(triangle_bmp_up, pixel_shader=getattr(triangle_bmp_up, 'pixel_shader', displayio.ColorConverter()), x=indent_indicator, y=indent_top + vert_spacing*2)
-
 pricedata_group.append(btc_label)
 pricedata_group.append(eth_label)
 pricedata_group.append(xmr_label)
@@ -73,9 +67,6 @@ pricedata_group.append(xmr_price_label)
 pricedata_group.append(btc_change_label)
 pricedata_group.append(eth_change_label)
 pricedata_group.append(xmr_change_label)
-#pricedata_group.append(btc_trend_indicator_up)
-#pricedata_group.append(eth_trend_indicator_up)
-#pricedata_group.append(xmr_trend_indicator_up)
 
 ######## Wi-Fi setup ########################################################################################
 try:
@@ -110,11 +101,13 @@ print("My IP address is", esp.pretty_ip(esp.ip_address))
 api_key = secrets['api_key']
 header = {'Authorization': 'Bearer ' + api_key}
 
+display.show(pricedata_group)   # Only show once the bootup sequence is done and data is requested.
+
 ######## MAIN LOOP ###########################################################################################
 while True:
-    display.show(pricedata_group)   # Only show once the bootup sequence is done and data is requested.
 
-######## BTC prices
+
+    ######## BTC prices
     response = requests.get(BTC_URL, headers=header)
     num_requests += 1
     try:
@@ -127,19 +120,17 @@ while True:
             btc_price_label.color = GREEN
             btc_change_label.color = GREEN
             btc_change_label.text = str(btc_price_delta) + "%"
-            #pricedata_group.append(btc_trend_indicator_up)
         else:
             btc_price_label.color = RED
             btc_change_label.color = RED
             btc_change_label.text = str(btc_price_delta) + "%"
-            #pricedata_group.remove(btc_trend_indicator_up)
     except (ValueError, RuntimeError) as e:
         print(str(response))
         print("Server not responding, retrying in 60 seconds. -", e)
         time.sleep(60)
 
 
-######## ETH prices
+    ######## ETH prices
     response = requests.get(ETH_URL, headers=header)
     num_requests += 1
     try:
@@ -152,19 +143,17 @@ while True:
             eth_price_label.color = GREEN
             eth_change_label.color = GREEN
             eth_change_label.text = str(eth_price_delta) + "%"
-            #pricedata_group.append(eth_trend_indicator_up)
         else:
             eth_price_label.color = RED
             eth_change_label.color = RED
             eth_change_label.text = str(eth_price_delta) + "%"
-            #pricedata_group.remove(eth_trend_indicator_up)
     except (ValueError, RuntimeError) as e:
         print(str(response))
         print("Server not responding, retrying in 60 seconds. -", e)
         time.sleep(60)
 
 
-######## XMR prices
+    ######## XMR prices
     response = requests.get(XMR_URL, headers=header)
     num_requests += 1
     try:
@@ -177,18 +166,14 @@ while True:
             xmr_price_label.color = GREEN
             xmr_change_label.color = GREEN
             xmr_change_label.text = str(xmr_price_delta) + "%"
-            #pricedata_group.append(xmr_trend_indicator_up)
         else:
             xmr_price_label.color = RED
             xmr_change_label.color = RED
             xmr_change_label.text = str(xmr_price_delta) + "%"
-            #pricedata_group.remove(xmr_trend_indicator_up)
     except (ValueError, RuntimeError) as e:
         print(str(response))
         print("Server not responding, retrying in 60 seconds. -", e)
         time.sleep(60)
-
-
 
     num_loops += 1
     print("Loops=" + str(num_loops) + " Requests=" + str(num_requests) )
