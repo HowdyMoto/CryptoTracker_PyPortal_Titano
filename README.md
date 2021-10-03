@@ -15,17 +15,18 @@ This tracker shows three crypto asset prices: BTC, ETH, and XMR. It uses CoinCap
 8. Create a directory on your Titano called /lib
 9. When you run the program, it will let you know which libraries are missing. Copy over the needed libraries from the ZIP files /lib folder to the /lib directory on your Titano.
 10. Create a file called 'secrets.py' on your Titano.
-11. Paste this into the file:
+11. Paste this into secrets.py:
 
-<code>
+```
 secrets = {
  'ssid' : 'your_wifi_SSID_name',
  'password' : 'your_wifi_password',
  'api_key' : 'your_coincap_API_key',
  }
- </code>
+```
 
-12. Replace the above placeholder wiFi secrets with your Wifi network credentials.
+
+12. Replace the above placeholder WiFi credentials with your Wifi network credentials.
 13. Get a CoinCap API key here: https://coincap.io/api-key
 14. Replace the above placeholder with your CoinCap API key.
 15. Save secrets.py to your Titano. 
