@@ -1,4 +1,4 @@
-# CryptoTracker_PyPortal_Titano
+# PyPortal Titano Cryptocurrency Tracker
 #### A crypto price tracker for Adafruit's PyPortal Titano
  This is a simple crypto price tracker for Adafruit's PyPortal Titano.
 
