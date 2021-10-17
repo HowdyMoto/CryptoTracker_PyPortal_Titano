@@ -31,4 +31,13 @@ secrets = {
 14. Replace the above placeholder with your CoinCap API key.
 15. Save secrets.py to your Titano. 
 
-Enjoy!
+### ESP32 crashes
+I haver tested two boards, and both of them always crash after an unpredictable amount of time with one of two errors:
+'''
+RuntimeError: ESP32 not responding
+RuntimeError: ESP32 timed out on SPI select
+'''
+After combing the Adafruit forums, seems like there no solution to these issues out there. I upgraded to version 1.7.4, and that did not improve stability. But it's probably worth updating your ESP32 firmware to the latest version if newer version come out:
+https://learn.adafruit.com/upgrading-esp32-firmware?view=all&gclid=CjwKCAjw8KmLBhB8EiwAQbqNoM00cgiw9Jt8UJj6AMBJ-wQknBYQH0eh_Q4FXv7z_J8ckX_eqbQ1NRoCRPYQAvD_BwE
+
+
