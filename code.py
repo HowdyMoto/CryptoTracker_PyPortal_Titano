@@ -98,7 +98,7 @@ while not esp.is_connected:
 print("Connected to", str(esp.ssid, "utf-8"), "\tRSSI:", esp.rssi)
 print("My IP address is", esp.pretty_ip(esp.ip_address))
 
-api_key = secrets['api_key']
+api_key = secrets['coincap_api_key']
 header = {'Authorization': 'Bearer ' + api_key}
 
 display.show(pricedata_group)   # Only show once the bootup sequence is done and data is requested.
