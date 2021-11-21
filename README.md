@@ -21,7 +21,7 @@ This tracker shows three crypto asset prices: BTC, ETH, and XMR. It uses CoinCap
 secrets = {
  'ssid' : 'your_wifi_SSID_name',
  'password' : 'your_wifi_password',
- 'api_key' : 'your_coincap_API_key',
+ 'coincap_api_key' : 'your_coincap_API_key',
  }
 ```
 
