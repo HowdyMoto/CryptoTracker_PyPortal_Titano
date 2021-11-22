@@ -2,7 +2,7 @@
 #### A crypto price tracker for Adafruit's PyPortal Titano
  This is a simple crypto price tracker for Adafruit's PyPortal Titano.
 
-This tracker shows three crypto asset prices: BTC, ETH, and XMR. It uses CoinCap's API. It's very easy to modify if you want to add other crypto prices.
+This tracker shows three crypto asset prices, which the user can configure, using CoinCap's API.
 
 ### Instructions:
 1. Get yourself an Adafruit PyPortal Titano from https://www.adafruit.com/product/4465
