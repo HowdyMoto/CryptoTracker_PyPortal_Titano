@@ -7,6 +7,8 @@ import microcontroller
 
 from adafruit_display_text import label
 from adafruit_display_shapes.rect import Rect
+from adafruit_display_shapes.roundrect import RoundRect
+
 from adafruit_bitmap_font import bitmap_font
 
 import adafruit_requests as requests
@@ -19,10 +21,13 @@ BLACK = 0x000000
 GREEN = 0x00FF00
 RED =   0xFF0000
 DARKRED =   0xCC0000
+DARKGREEN = 0X00AA00
 URL = "http://api.coincap.io/v2/assets/"
 BTC_URL = "http://api.coincap.io/v2/assets/bitcoin"
 ETH_URL = "http://api.coincap.io/v2/assets/ethereum"
 XMR_URL = "http://api.coincap.io/v2/assets/monero"
+BIGCHANGE_THRESHOLD = 5
+
 NUM_LOOPS = 0
 
 COIN1_BMP = displayio.OnDiskBitmap("bitmaps/BTC.bmp")
@@ -32,7 +37,7 @@ WIFI_BMP = displayio.OnDiskBitmap("bitmaps/WiFi.bmp")
 
 INDENT_LABEL = 32
 INDENT_PRICE = 140
-INDENT_CHANGE = 360
+INDENT_CHANGE = 350
 INDENT_TOP = 64
 VERTICAL_SPACING = 96
 
@@ -43,7 +48,7 @@ icon_tilegrid3 = displayio.TileGrid(COIN3_BMP, pixel_shader=COIN3_BMP.pixel_shad
 FONT = bitmap_font.load_font("fonts/Nunito-Regular-75.bdf")
 
 
-######## Get info from secrets.py ######################################################
+######## Get info from secrets.py ############################################################################
 try:
     from secrets import secrets
 except ImportError:
@@ -53,15 +58,15 @@ except ImportError:
 ########### Set up display and load screen UI ################################################################
 display = board.DISPLAY
 loadscreen_group = displayio.Group()
-wait_label = label.Label(FONT, text="Connecting to WiFi...", scale=1, color=WHITE, x=80, y=150)
-tile_grid_wifi = displayio.TileGrid(WIFI_BMP, pixel_shader=WIFI_BMP.pixel_shader, x=200, y=192)
+wait_label = label.Label(FONT, text="Connecting to WiFi...", scale=1, color=WHITE, x=80, y=130)
+tile_grid_wifi = displayio.TileGrid(WIFI_BMP, pixel_shader=WIFI_BMP.pixel_shader, x=200, y=172)
 
 loadscreen_group.append(wait_label)
 loadscreen_group.append(tile_grid_wifi)
 
 display.show(loadscreen_group)
 
-########## Main UI setup ##########################################################################################
+########## Main UI setup #####################################################################################
 
 rect_background = Rect(0, 0, display.width, display.height, fill=BLACK) # If we detect an error, we turn the background red.
 
@@ -74,9 +79,12 @@ main_group = displayio.Group()
 label_coin1 = label.Label(FONT, text=secrets["coin1label"], color=WHITE, x=INDENT_LABEL, y=INDENT_TOP )
 label_coin2 = label.Label(FONT, text=secrets["coin2label"], color=WHITE, x=INDENT_LABEL, y=(INDENT_TOP + VERTICAL_SPACING) )
 label_coin3 = label.Label(FONT, text=secrets["coin3label"], color=WHITE, x=INDENT_LABEL, y=(INDENT_TOP + VERTICAL_SPACING*2) )
-label_coin1_price = label.Label(FONT, text="wait...", scale=1, color=WHITE, x=INDENT_PRICE, y=INDENT_TOP)
-label_coin2_price = label.Label(FONT, text="wait...", scale=1, color=WHITE, x=INDENT_PRICE, y=(INDENT_TOP + VERTICAL_SPACING))
-label_coin3_price = label.Label(FONT, text="wait...", scale=1, color=WHITE, x=INDENT_PRICE, y=(INDENT_TOP + VERTICAL_SPACING*2) )
+label_coin1_price = label.Label(FONT, text="retrieving...", scale=1, color=WHITE, x=INDENT_PRICE, y=INDENT_TOP)
+label_coin2_price = label.Label(FONT, text="retrieving...", scale=1, color=WHITE, x=INDENT_PRICE, y=(INDENT_TOP + VERTICAL_SPACING))
+label_coin3_price = label.Label(FONT, text="retrieving...", scale=1, color=WHITE, x=INDENT_PRICE, y=(INDENT_TOP + VERTICAL_SPACING*2) )
+rect_coin1_bigchange_background = RoundRect(x=INDENT_CHANGE-16, y=(INDENT_TOP - 32),                        width=128, height =64, r=8, fill=BLACK)
+rect_coin2_bigchange_background = RoundRect(x=INDENT_CHANGE-16, y=(INDENT_TOP + VERTICAL_SPACING*1 - 32),   width=128, height =64, r=8, fill=BLACK)
+rect_coin3_bigchange_background = RoundRect(x=INDENT_CHANGE-16, y=(INDENT_TOP + VERTICAL_SPACING*2 - 32),   width=128, height =64, r=8, fill=BLACK)
 label_coin1_change = label.Label(FONT, text=str(""), scale=1, color=WHITE, x=INDENT_CHANGE, y=INDENT_TOP)
 label_coin2_change = label.Label(FONT, text=str(""), scale=1, color=WHITE, x=INDENT_CHANGE, y=(INDENT_TOP + VERTICAL_SPACING))
 label_coin3_change = label.Label(FONT, text=str(""), scale=1, color=WHITE, x=INDENT_CHANGE, y=(INDENT_TOP + VERTICAL_SPACING*2) )
@@ -90,18 +98,20 @@ name_group.append(label_coin3)
 price_group.append(label_coin1_price)
 price_group.append(label_coin2_price)
 price_group.append(label_coin3_price)
+change_group.append(rect_coin1_bigchange_background)
+change_group.append(rect_coin2_bigchange_background)
+change_group.append(rect_coin3_bigchange_background)
 change_group.append(label_coin1_change)
 change_group.append(label_coin2_change)
 change_group.append(label_coin3_change)
 
 main_group.append(rect_background)
 main_group.append(icon_group)
-#main_group.append(name_group)
+#main_group.append(name_group)   #use this if you don't want to use icons and comment out icon_group
 main_group.append(price_group)
 main_group.append(change_group)
 
-
-######## Wi-Fi setup ########################################################################################
+######## Wi-Fi setup #######################################################################################
 
 esp32_cs = DigitalInOut(board.ESP_CS)
 esp32_ready = DigitalInOut(board.ESP_BUSY)
@@ -131,7 +141,7 @@ header = {'Authorization': 'Bearer ' + api_key}
 display.show(main_group)   # Only show once the bootup sequence is done and data is requested.
 
 ######### Get the price of a coin ########################################################################
-def getprice(asset, pricelabel, changelabel):
+def getprice(asset, pricelabel, changelabel, backgroundrect):
     try:
         response = requests.get(URL + asset, headers=header)
         if response.status_code == 200:
@@ -145,10 +155,24 @@ def getprice(asset, pricelabel, changelabel):
 
             if price_delta_unformatted >= 0:
                 pricelabel.color = GREEN
-                changelabel.color = GREEN
+                if price_delta_unformatted >= BIGCHANGE_THRESHOLD:   #Price is way up, highlight it!
+                    backgroundrect.fill = DARKGREEN
+                    changelabel.color = BLACK
+                    changelabel.background_color = DARKGREEN
+                else:
+                    backgroundrect.fill = BLACK
+                    changelabel.color = GREEN
+                    changelabel.background_color = BLACK
             else:
                 pricelabel.color = RED
-                changelabel.color = RED
+                if price_delta_unformatted < -BIGCHANGE_THRESHOLD:  #Price is way down, highlight it!
+                    backgroundrect.fill = DARKRED
+                    changelabel.color = BLACK
+                    changelabel.background_color = DARKRED
+                else:
+                    backgroundrect.fill = BLACK
+                    changelabel.color = RED
+                    changelabel.background_color = BLACK
 
             pricelabel.text = price
             changelabel.text = price_delta + "%"
@@ -163,9 +187,9 @@ def getprice(asset, pricelabel, changelabel):
 
 ######## MAIN LOOP ########### ##############################################################################
 while True:
-    getprice(secrets["coin1"], label_coin1_price, label_coin1_change)
-    getprice(secrets["coin2"], label_coin2_price, label_coin2_change)
-    getprice(secrets["coin3"], label_coin3_price, label_coin3_change)
+    getprice(secrets["coin1"], label_coin1_price, label_coin1_change, rect_coin1_bigchange_background)
+    getprice(secrets["coin2"], label_coin2_price, label_coin2_change, rect_coin2_bigchange_background)
+    getprice(secrets["coin3"], label_coin3_price, label_coin3_change, rect_coin3_bigchange_background)
 
     NUM_LOOPS += 1
     print("Loops=" + str(NUM_LOOPS) )
