@@ -1,8 +1,8 @@
 # PyPortal Titano Cryptocurrency Tracker
 #### A crypto price tracker for Adafruit's PyPortal Titano
- This is a simple crypto price tracker for Adafruit's PyPortal Titano.
+ This is a simple crypto price tracker for Adafruit's PyPortal Titano. It uses CoinCap's API.
 
-This tracker shows three crypto asset prices, which the user can configure, using CoinCap's API.
+This tracker shows three crypto asset prices, which the user can specify.
 
 ### Instructions:
 1. Get yourself an Adafruit PyPortal Titano from https://www.adafruit.com/product/4465
@@ -38,11 +38,10 @@ secrets = {
 17. Save secrets.py to your Titano
 
 ### ESP32 crashes
-I have tested two boards, and both of them always crash after an unpredictable amount of time with this error:
+I have tested two boards, and both of them always crash after an unpredictable amount of time with this error in the esp32 libraries.
 ```
 RuntimeError: ESP32 timed out on SPI select
 ```
-After combing the Adafruit forums, seems like there no solution to these issues out there. I upgradedthe firmware to version 1.7.4, and that did not improve stability. But it's probably worth updating your ESP32 firmware to the latest version, if a newer version comes out:
-https://learn.adafruit.com/upgrading-esp32-firmware?view=all&gclid=CjwKCAjw8KmLBhB8EiwAQbqNoM00cgiw9Jt8UJj6AMBJ-wQknBYQH0eh_Q4FXv7z_J8ckX_eqbQ1NRoCRPYQAvD_BwE
+After combing the Adafruit forums, seems like there no solution to this issue out there. So, there is code in the app that tries to detect this error and reboot the device.
 
 
